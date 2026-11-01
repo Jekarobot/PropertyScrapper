@@ -189,6 +189,8 @@ Blockers must be fixed before the stage is marked done.
 1. `pytest pipeline -m network` fails or `crawl` exits 4 → do **not** patch the parser blind.
 2. Re-capture one page: `curl -sS --compressed "<search url>" -H "User-Agent: …" > /tmp/probe.html`.
 3. Diff against `pipeline/tests/fixtures/search-dev-p1.html`; identify the changed selector.
+   **Redact before committing** (Maps key, `csrf_token`, `tel:` links) — see
+   `assets/fixtures/README.md`.
 4. Update `01-discovery.md` §2 selector table **first**, then the fixture, then the parser, then the
    golden snapshot — in that order, one commit each.
 5. Never update the snapshot without explaining the diff in the commit body.

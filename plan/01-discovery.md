@@ -305,5 +305,6 @@ grep -o 'class="\(available\|not-available\|check-availability\)"' page.html | s
 curl -sS --compressed "$DETAIL" -H "User-Agent: $UA" | grep -o 'center: {lat: [-0-9.]*, lng: [-0-9.]*}'
 ```
 
-The `.probe/` directory is scratch and can be deleted; everything needed is in
-`assets/fixtures/` and in this document.
+The scratch directory is throwaway; everything needed is in `assets/fixtures/` and in this
+document. **A captured page must be redacted before it is committed** (Maps key, `csrf_token`,
+`tel:` links) — the procedure is in `assets/fixtures/README.md`.

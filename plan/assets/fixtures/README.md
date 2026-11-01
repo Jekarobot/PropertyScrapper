@@ -14,13 +14,29 @@ snapshot in a separate commit (see `plan/91-agent-briefs.md` §6).
 | `search-dev-p2.html` | same URL with `page_no=2` | 200 | 169 349 B | 16 cards; 0 available / 1 check / 15 not available; pager `2 Of 2` |
 | `search-boundary-p71.html` | `…/search_en?project_code=&listingtype=2&propertytype=1&bedroom=&minsize=45&maxsize=150&minprice=25000&maxprice=50000&special=&sort=&page_no=71` | 200 | 174 631 B | 12 available + 4 check on one page; pager `71 Of 546` — the mixed page that makes `empty_streak` necessary |
 | `search-error-out-of-range.html` | `…&page_no=3` on the 2-page DEV query | 200 | 105 B | the JS-redirect stub to `/error/th` — end-of-data signal |
-| `detail-cx84121.html` | `https://connex.in.th/en/detail/for-rent-condo-the-bangkok-sathorn-high-floor-river-view-bts-surasak-yannawa-sa-thon-bangkok-cx-84121` | 200 | 222 243 B | `center: {lat: 13.7187616, lng: 100.5202356}`; breadcrumb project `p00348` and name `The Bangkok Sathorn`; contains the word "Available" even though state must come from the search page |
+| `detail-cx84121.html` | `https://connex.in.th/en/detail/for-rent-condo-the-bangkok-sathorn-high-floor-river-view-bts-surasak-yannawa-sa-thon-bangkok-cx-84121` | 200 | 222 117 B | `center: {lat: 13.7187616, lng: 100.5202356}`; breadcrumb project `p00348` and name `The Bangkok Sathorn`; contains the word "Available" even though state must come from the search page |
 
 Notes:
 
 - Sizes drift by a few hundred bytes between fetches (ad/analytics blocks); tests must never assert
   byte sizes. The table is for the reviewer's sanity check only.
 - `detail-cx84121.html` was fetched without `--compressed`; the file is UTF-8.
-- No personal data is present in these files (listing data only, no contact forms submitted).
+- **Redactions applied before commit:** the Google Maps API key embedded in the detail page
+  (`key=AIza…`, 2 occurrences) is replaced with `REDACTED_GOOGLE_MAPS_KEY`; the session
+  `csrf_token` (2×) with `REDACTED_CSRF_TOKEN`; the agency phone (`href="tel:…"`, 3×) with
+  `href="tel:REDACTED"`. Nothing in the parsers reads any of them — coordinates and the breadcrumb
+  are untouched. This also keeps the repo free of third-party credentials and personal data.
+
+### Rule for every re-capture
+
+Raw HTML copied from a live site carries embedded credentials, CSRF tokens and contact details.
+Before a fixture is committed it must be redacted:
+
+```bash
+sed -i -E 's/AIza[0-9A-Za-z_-]{20,}/REDACTED_GOOGLE_MAPS_KEY/g;
+           s/(name="csrf_token" value=")[^"]*(")/\1REDACTED_CSRF_TOKEN\2/g;
+           s/href="tel:[^"]*"/href="tel:REDACTED"/g' fixture.html
+grep -c 'AIza\|csrf_token" value="[a-f0-9]\|tel:0' fixture.html   # must print 0
+```
 - Synthetic fixtures are produced inside tests (string edits), not stored here; each stage doc says
   exactly which edit creates which case.
